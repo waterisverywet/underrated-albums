@@ -1,0 +1,9 @@
+// schema.prisma
+model Album {
+  id          String   @id @default(cuid())
+  title       String
+  artist      Artist   @relation(fields: [artistId], references: [id])
+  spotifyId   String   @unique
+  releaseDate DateTime
+  genres      String[]
+}

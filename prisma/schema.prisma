@@ -1,0 +1,84 @@
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  image         String?
+  spotifyId     String?   @unique
+  refreshToken  String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  preferences   UserPreference[]
+  interactions  UserInteraction[]
+  recommendations AlbumRecommendation[]
+}
+
+model Artist {
+  id               String    @id @default(cuid())
+  spotifyId        String    @unique
+  name             String
+  monthlyListeners Int?
+  genres           String[]
+  imageUrl         String?
+  popularity       Int?
+  lastUpdated      DateTime  @default(now())
+  albums           Album[]
+}
+
+model Album {
+  id               String    @id @default(cuid())
+  spotifyId        String    @unique
+  title            String
+  artistId         String
+  artist           Artist    @relation(fields: [artistId], references: [id])
+  releaseDate      DateTime?
+  totalTracks      Int?
+  popularity       Int?
+  imageUrl         String?
+  albumType        String?
+  lastUpdated      DateTime  @default(now())
+  interactions     UserInteraction[]
+  recommendations  AlbumRecommendation[]
+}
+
+model UserPreference {
+  id       String @id @default(cuid())
+  userId   String
+  user     User   @relation(fields: [userId], references: [id])
+  genre    String
+  weight   Float
+  
+  @@unique([userId, genre])
+}
+
+model UserInteraction {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id])
+  albumId         String
+  album           Album    @relation(fields: [albumId], references: [id])
+  interactionType String   // 'like', 'save', 'listen', 'skip'
+  createdAt       DateTime @default(now())
+}
+
+model AlbumRecommendation {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id])
+  albumId        String
+  album          Album    @relation(fields: [albumId], references: [id])
+  score          Float
+  recommendedAt  DateTime @default(now())
+  viewed         Boolean  @default(false)
+  
+  @@unique([userId, albumId])
+}
